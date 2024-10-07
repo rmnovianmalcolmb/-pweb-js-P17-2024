@@ -1,12 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Commerce</title>
-</head>
-<body>
-    
-</body>
-<script src="main.js"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E-Commerce P17 Store</title>
+  </head>
+  <body>
+    <header>
+      <h1>E-Commerce P17 Store</h1>
+      <nav>
+        <button onclick="filterByCategory('smartphones')">Smartphones</button>
+        <button onclick="filterByCategory('laptops')">Laptops</button>
+        <button onclick="filterByCategory('fragrances')">Fragrances</button>
+      </nav>
+      <label for="items-per-page">Items per page:</label>
+      <select id="items-per-page" onchange="changeItemsPerPage()">
+        <option value="6">6</option>
+        <option value="12">12</option>
+        <option value="18">18</option>
+      </select>
+    </header>
+
+    <section id="products-container"></section>
+
+    <div id="pagination">
+      <button onclick="prevPage()">Previous</button>
+      <span id="page-number">Page 1</span>
+      <button onclick="nextPage()">Next</button>
+    </div>
+
+    <section id="cart">
+      <h2>Cart</h2>
+      <div id="cart-items"></div>
+      <p>Total Items: <span id="total-items">0</span></p>
+      <p>Total Price: Rp <span id="total-price">0</span></p>
+      <button onclick="checkout()">Checkout</button>
+    </section>
+
+    <script src="main.js"></script>
+  </body>
 </html>
