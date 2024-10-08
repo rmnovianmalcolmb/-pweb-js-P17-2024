@@ -1,42 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>E-Commerce P17 Store</title>
-  </head>
-  <body>
+</head>
+<body>
     <header>
-      <h1>E-Commerce P17 Store</h1>
-      <nav>
-        <button onclick="filterByCategory('smartphones')">Smartphones</button>
-        <button onclick="filterByCategory('laptops')">Laptops</button>
-        <button onclick="filterByCategory('fragrances')">Fragrances</button>
-      </nav>
-      <label for="items-per-page">Items per page:</label>
-      <select id="items-per-page" onchange="changeItemsPerPage()">
-        <option value="6">6</option>
-        <option value="12">12</option>
-        <option value="18">18</option>
-      </select>
+        <h1>E-Commerce P17 Store</h1>
+        <label for="category">Category:</label>
+        <select id="category" onchange="filterByCategory(this.value)">
+            <option value="all">All</option>
+            <option value="beauty">Beauty</option>
+            <option value="fragrances">Fragrances</option>
+            <option value="furniture">Furniture</option>
+            <option value="groceries">Groceries</option>
+            <option value="home-decoration">Home Decoration</option>
+            <option value="kitchen-accessories">Kitchen Accessories</option>
+            <option value="laptops">Laptops</option>
+            <option value="mens-shirts">Men's Shirts</option>
+            <option value="mens-shoes">Men's Shoes</option>
+            <option value="mens-watches">Men's Watches</option>
+            <option value="mobile-accessories">Mobile Accessories</option>
+            <option value="motorcycle">Motorcycle</option>
+            <option value="skin-care">Skin Care</option>
+            <option value="smartphones">Smartphones</option>
+            <option value="sports-accessories">Sports Accessories</option>
+            <option value="sunglasses">Sunglasses</option>
+            <option value="tablets">Tablets</option>
+            <option value="tops">Tops</option>
+            <option value="vehicle">Vehicle</option>
+            <option value="womens-bags">Women's Bags</option>
+            <option value="womens-dresses">Women's Dresses</option>
+            <option value="womens-jewellery">Women's Jewellery</option>
+            <option value="womens-shoes">Women's Shoes</option>
+            <option value="womens-watches">Women's Watches</option>
+        </select>
+        <label for="items-per-page">Items per page:</label>
+        <select id="items-per-page" onchange="changeItemsPerPage()">
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+        </select>
     </header>
 
     <section id="products-container"></section>
 
     <div id="pagination">
-      <button onclick="prevPage()">Previous</button>
-      <span id="page-number">Page 1</span>
-      <button onclick="nextPage()">Next</button>
+        <button onclick="prevPage()">Previous</button>
+        <span id="page-number">Page 1</span>
+        <button onclick="nextPage()">Next</button>
     </div>
 
     <section id="cart">
-      <h2>Cart</h2>
-      <div id="cart-items"></div>
-      <p>Total Items: <span id="total-items">0</span></p>
-      <p>Total Price: Rp <span id="total-price">0</span></p>
-      <button onclick="checkout()">Checkout</button>
+        <h2>Cart</h2>
+        <div id="cart-items"></div>
+        <p>Total Items: <span id="total-items">0</span></p>
+        <p>Total Price: Rp <span id="total-price">0</span></p>
+        <button onclick="checkout()">Checkout</button>
     </section>
 
     <script src="main.js"></script>
-  </body>
+</body>
 </html>

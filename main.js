@@ -2,37 +2,34 @@ let products = [];
 let filteredProducts = [];
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let currentPage = 1;
-let itemsPerPage = 6; // Default items per page
-
-// Adjust prices to reflect real-world values
-function adjustRealWorldPrice(product) {
-  switch (product.category) {
-    case "smartphones":
-      return Math.floor(product.price * 100000); // Multiply by a realistic range for smartphones
-    case "laptops":
-      return Math.floor(product.price * 200000); // Multiply by a realistic range for laptops
-    case "fragrances":
-      return Math.floor(product.price * 5000); // Multiply by a realistic range for fragrances
-    default:
-      return product.price * 1000; // For other products
-  }
-}
+let itemsPerPage = 10;
 
 async function fetchProducts() {
   try {
-    const response = await fetch("https://dummyjson.com/products");
+    const response = await fetch("https://dummyjson.com/products?limit=0");
     const data = await response.json();
     products = data.products.map((product) => {
       return {
         ...product,
-        price: adjustRealWorldPrice(product), // Adjust each product's price
+        price: kursRupiah(product),
       };
     });
-    filteredProducts = products; // By default, show all products
+    filteredProducts = products;
     displayProducts(filteredProducts);
   } catch (error) {
     alert("Failed to fetch product data. Please try again later.");
   }
+}
+
+function kursRupiah(product) {
+  return product.price * 15000;
+}
+
+function formatRupiah(price) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+  }).format(price);
 }
 
 function displayProducts(productsList) {
@@ -54,20 +51,12 @@ function displayProducts(productsList) {
   updatePagination(productsList.length);
 }
 
-// Format price as Indonesian Rupiah
-function formatRupiah(price) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-  }).format(price);
-}
-
-// Paginate products
+// Menentukan item dari index ke berapa hingga index ke berapa yang akan ditampilkan
 function paginate(productsList, itemsPerPage, page) {
   return productsList.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 }
 
-// Update pagination information
+// Update nomor page
 function updatePagination(totalItems) {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   document.getElementById("page-number").textContent = `Page ${currentPage}`;
@@ -79,7 +68,7 @@ function updatePagination(totalItems) {
 function changeItemsPerPage() {
   const selectElement = document.getElementById("items-per-page");
   itemsPerPage = parseInt(selectElement.value);
-  currentPage = 1; // Reset to first page when changing items per page
+  currentPage = 1; // Reset ke page 1 ketika mengganti items per page
   displayProducts(filteredProducts);
 }
 
@@ -98,10 +87,12 @@ function prevPage() {
 }
 
 function filterByCategory(category) {
-  filteredProducts = products.filter(
-    (product) => product.category === category
-  );
-  currentPage = 1; // Reset to first page when filtering
+  if (category === "all") {
+    filteredProducts = products;
+  } else {
+    filteredProducts = products.filter((product) => product.category === category);
+  }
+  currentPage = 1; //Reset ke page 1 ketika mengganti kategori
   displayProducts(filteredProducts);
 }
 
@@ -126,6 +117,19 @@ function removeFromCart(productId) {
   updateCart();
 }
 
+function removeOneItem(productId) {
+  const existingProduct = cart.find((item) => item.id === productId);
+
+  if (existingProduct.quantity > 1) {
+    existingProduct.quantity -= 1;
+  } else {
+    cart = cart.filter((item) => item.id !== productId);
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+  updateCart();
+}
+
 function updateCart() {
   const cartItemsContainer = document.getElementById("cart-items");
   cartItemsContainer.innerHTML = "";
@@ -134,11 +138,11 @@ function updateCart() {
     const cartItem = document.createElement("div");
     cartItem.classList.add("cart-item");
     cartItem.innerHTML = `
-            <p>${item.title} - ${formatRupiah(item.price)} (x${
-      item.quantity
-    })</p>
-            <button onclick="removeFromCart(${item.id})">Remove</button>
-        `;
+      <p>${item.title} - ${formatRupiah(item.price)} (x${item.quantity})</p>
+      <button onclick="removeOneItem(${item.id})">-</button>
+      <button onclick="removeFromCart(${item.id})">Remove</button>
+      <button onclick="addToCart(${item.id})">+</button>
+    `;
     cartItemsContainer.appendChild(cartItem);
   });
 
