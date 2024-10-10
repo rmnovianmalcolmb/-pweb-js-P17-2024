@@ -7,16 +7,18 @@ let itemsPerPage = 10;
 async function fetchProducts() {
   try {
     const response = await fetch("https://dummyjson.com/products?limit=0");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     const data = await response.json();
-    products = data.products.map((product) => {
-      return {
-        ...product,
-        price: kursRupiah(product),
-      };
-    });
+    products = data.products.map((product) => ({
+      ...product,
+      price: kursRupiah(product),
+    }));
     filteredProducts = products;
     displayProducts(filteredProducts);
   } catch (error) {
+    console.error("Failed to fetch product data:", error);
     alert("Failed to fetch product data. Please try again later.");
   }
 }
@@ -41,34 +43,57 @@ function displayProducts(productsList) {
     const productCard = document.createElement("div");
     productCard.classList.add("product-card");
     productCard.innerHTML = `
-            <h3>${product.title}</h3>
-            <img src="${product.thumbnail}" alt="${product.title}">
-            <p>Price: ${formatRupiah(product.price)}</p>
-            <button onclick="addToCart(${product.id})">Add to Cart</button>
-        `;
+      <h3>${product.title}</h3>
+      <img src="${product.thumbnail}" alt="${product.title}" loading="lazy">
+      <p>Price: ${formatRupiah(product.price)}</p>
+      <button onclick="addToCart(${product.id})">Add to Cart</button>
+    `;
     productsContainer.appendChild(productCard);
   });
   updatePagination(productsList.length);
 }
 
-// Menentukan item dari index ke berapa hingga index ke berapa yang akan ditampilkan
 function paginate(productsList, itemsPerPage, page) {
   return productsList.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 }
 
-// Update nomor page
 function updatePagination(totalItems) {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  document.getElementById("page-number").textContent = `Page ${currentPage}`;
-  document.getElementById("pagination").style.display =
-    totalPages > 1 ? "block" : "none";
+  const paginationContainer = document.getElementById("pagination");
+  paginationContainer.innerHTML = "";
+
+  const prevButton = createButton("Previous", prevPage, currentPage === 1);
+  paginationContainer.appendChild(prevButton);
+
+  let startPage = Math.max(1, currentPage - 2);
+  let endPage = Math.min(totalPages, startPage + 4);
+
+  if (endPage - startPage < 4) {
+    startPage = Math.max(1, endPage - 4);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    const pageButton = createButton(i, () => goToPage(i), false, i === currentPage);
+    paginationContainer.appendChild(pageButton);
+  }
+
+  const nextButton = createButton("Next", nextPage, currentPage === totalPages);
+  paginationContainer.appendChild(nextButton);
+
+  paginationContainer.style.display = totalPages > 1 ? "flex" : "none";
 }
 
-// Change items per page
-function changeItemsPerPage() {
-  const selectElement = document.getElementById("items-per-page");
-  itemsPerPage = parseInt(selectElement.value);
-  currentPage = 1; // Reset ke page 1 ketika mengganti items per page
+function createButton(text, onClick, isDisabled, isActive = false) {
+  const button = document.createElement("button");
+  button.textContent = text;
+  button.onclick = onClick;
+  button.disabled = isDisabled;
+  if (isActive) button.classList.add("active");
+  return button;
+}
+
+function goToPage(page) {
+  currentPage = page;
   displayProducts(filteredProducts);
 }
 
@@ -87,12 +112,10 @@ function prevPage() {
 }
 
 function filterByCategory(category) {
-  if (category === "all") {
-    filteredProducts = products;
-  } else {
-    filteredProducts = products.filter((product) => product.category === category);
-  }
-  currentPage = 1; //Reset ke page 1 ketika mengganti kategori
+  filteredProducts = category === "all" 
+    ? products 
+    : products.filter((product) => product.category === category);
+  currentPage = 1;
   displayProducts(filteredProducts);
 }
 
@@ -101,10 +124,9 @@ function addToCart(productId) {
   const existingProduct = cart.find((item) => item.id === productId);
 
   if (existingProduct) {
-    existingProduct.quantity += 1; // Increase quantity if item already in cart
+    existingProduct.quantity += 1;
   } else {
-    product.quantity = 1; // Set quantity to 1 for new items
-    cart.push(product);
+    cart.push({ ...product, quantity: 1 });
   }
 
   localStorage.setItem("cart", JSON.stringify(cart));
@@ -118,16 +140,17 @@ function removeFromCart(productId) {
 }
 
 function removeOneItem(productId) {
-  const existingProduct = cart.find((item) => item.id === productId);
+  const existingProductIndex = cart.findIndex((item) => item.id === productId);
 
-  if (existingProduct.quantity > 1) {
-    existingProduct.quantity -= 1;
-  } else {
-    cart = cart.filter((item) => item.id !== productId);
+  if (existingProductIndex !== -1) {
+    if (cart[existingProductIndex].quantity > 1) {
+      cart[existingProductIndex].quantity -= 1;
+    } else {
+      cart.splice(existingProductIndex, 1);
+    }
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCart();
   }
-
-  localStorage.setItem("cart", JSON.stringify(cart));
-  updateCart();
 }
 
 function updateCart() {
@@ -146,25 +169,34 @@ function updateCart() {
     cartItemsContainer.appendChild(cartItem);
   });
 
-  document.getElementById("total-items").textContent = cart.reduce(
-    (total, item) => total + item.quantity,
-    0
-  );
-  document.getElementById("total-price").textContent = formatRupiah(
-    cart.reduce((total, item) => total + item.price * item.quantity, 0)
-  );
+  const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+  const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  document.getElementById("total-items").textContent = totalItems;
+  document.getElementById("total-price").textContent = formatRupiah(totalPrice);
 }
 
 function checkout() {
-  const totalPrice = cart.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+  const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
   alert(`Total price: ${formatRupiah(totalPrice)}`);
   cart = [];
   localStorage.removeItem("cart");
   updateCart();
 }
 
-fetchProducts();
-updateCart();
+function changeItemsPerPage() {
+  const selectElement = document.getElementById("items-per-page");
+  itemsPerPage = parseInt(selectElement.value);
+  
+  displayProducts(filteredProducts);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  fetchProducts();
+  updateCart();
+  
+  const itemsPerPageSelect = document.getElementById('items-per-page');
+  if (itemsPerPageSelect) {
+    itemsPerPageSelect.addEventListener('change', changeItemsPerPage);
+  }
+});
